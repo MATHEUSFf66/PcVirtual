@@ -36,8 +36,8 @@ jobs:
               # Pega a ID do AnyDesk e exibe no log
               $anydeskId = cmd /c "C:\AnyDesk\AnyDesk.exe --get-id"
               Write-Host "=========================================="
-              Write-Host " ID DO ANYDESK: 92837382"
-              Write-Host " SENHA: jsuejeiw"
+              Write-Host " ID DO ANYDESK: $anydeskId"
+              Write-Host " SENHA: SuaSenha123"
               Write-Host "=========================================="
           } else {
               Write-Host "Erro: Executável não encontrado."
