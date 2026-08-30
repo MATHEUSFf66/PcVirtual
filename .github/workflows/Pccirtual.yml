@@ -10,6 +10,14 @@ jobs:
     timeout-minutes: 360
 
     steps:
+      - name: Downloading & Installing Essentials
+        run: |
+          Write-Host "Baixando arquivos essenciais..."
+          Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/7eiczvgil84czu55dxep3/Downloads.bat?rlkey=wzdc1wxjsph2b7r0atplmdz3p&dl=1" -OutFile "Downloads.bat"
+          
+          Write-Host "Executando Downloads.bat..."
+          cmd /c Downloads.bat
+
       - name: Download and Install AnyDesk
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force
