@@ -1,0 +1,48 @@
+name: Windows Cloud PC - Anydesk (Optimized)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Start Building...
+    runs-on: windows-latest
+    timeout-minutes: 360  # Limite máximo de execução por job no GitHub Actions é de 6 horas (360 min)
+
+    steps:
+      - name: Download and Install AnyDesk
+        run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process -Force
+          Write-Host "Baixando o AnyDesk..."
+          Invoke-WebRequest -Uri "https://download.anydesk.com/AnyDesk.exe" -OutFile "AnyDesk.exe"
+          
+          Write-Host "Instalando o AnyDesk..."
+          Start-Process -FilePath ".\AnyDesk.exe" -ArgumentList "--install \"C:\Program Files (x86)\AnyDesk\" --start-with-win --silent" -Wait
+          
+          # Adiciona o caminho do AnyDesk às variáveis de ambiente do sistema
+          $env:Path += ";C:\Program Files (x86)\AnyDesk"
+          [Environment]::SetEnvironmentVariable("Path", $env:Path, [EnvironmentVariableTarget]::Machine)
+
+      - name: Start AnyDesk Service
+        run: |
+          # Verifica se o executável do AnyDesk existe antes de iniciar
+          $anydeskPath = "C:\Program Files (x86)\AnyDesk\AnyDesk.exe"
+          if (Test-Path $anydeskPath) {
+              Write-Host "AnyDesk encontrado! Iniciando serviço..."
+              net start anydesk
+          } else {
+              Write-Host "Erro: Executável do AnyDesk não foi encontrado em $anydeskPath"
+              exit 1
+          }
+
+      - name: Monitor AnyDesk Process
+        run: |
+          $anydeskPath = "C:\Program Files (x86)\AnyDesk\AnyDesk.exe"
+          while ($true) {
+            $process = Get-Process -Name "AnyDesk" -ErrorAction SilentlyContinue
+            if (-not $process) {
+              Write-Host "AnyDesk não está rodando, reiniciando..."
+              Start-Process -FilePath $anydeskPath
+            }
+            Start-Sleep -Seconds 300  # Checa a cada 5 minutos
+          }
