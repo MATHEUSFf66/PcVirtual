@@ -22,22 +22,29 @@ jobs:
           $env:Path += ";C:\AnyDesk"
           [Environment]::SetEnvironmentVariable("Path", $env:Path, [EnvironmentVariableTarget]::Machine)
 
-      - name: Set Password and Get AnyDesk ID
+      - name: Set Random Password and Get AnyDesk ID
         run: |
           $anydeskPath = "C:\AnyDesk\AnyDesk.exe"
           if (Test-Path $anydeskPath) {
-              # Define a senha para acesso nao supervisionado (Troque 'SuaSenha123' pela senha que quiser)
-              echo "SuaSenha123" | & $anydeskPath --set-password
-              
-              # Inicia o servico
+              # Inicia o serviço do AnyDesk primeiro para aceitar comandos de configuração
+              Start-Service -Name "AnyDesk" -ErrorAction SilentlyContinue
               Start-Process -FilePath $anydeskPath
-              Start-Sleep -Seconds 10
+              Start-Sleep -Seconds 5
+
+              # Gera uma senha aleatoria de 10 caracteres (letras e numeros)
+              $randomPassword = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 10 | ForEach-Object {[char]$_})
+
+              # Define a senha de forma limpa via cmd /c para evitar falha no pipe do PowerShell
+              cmd /c "echo $randomPassword | `"C:\AnyDesk\AnyDesk.exe`" --set-password"
               
-              # Pega a ID do AnyDesk e exibe no log
+              Start-Sleep -Seconds 5
+              
+              # Obtém a ID
               $anydeskId = cmd /c "C:\AnyDesk\AnyDesk.exe --get-id"
+              
               Write-Host "=========================================="
               Write-Host " ID DO ANYDESK: $anydeskId"
-              Write-Host " SENHA: SuaSenha123"
+              Write-Host " SENHA GERADA:  $randomPassword"
               Write-Host "=========================================="
           } else {
               Write-Host "Erro: Executável não encontrado."
